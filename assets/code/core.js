@@ -13,7 +13,7 @@
                             { name: "Unknown", version: 0 };
 
     if (minimumVersions[browser.name] && browser.version < minimumVersions[browser.name]) {
-        alert(`Your browser (${browser.name} ${browser.version}) is outdated. Update it, or else WebDesk might not work right.`);
+        alert(`Your browser (${browser.name} ${browser.version}) is outdated. Update it, or else WebDesk Recovery might not work right.`);
     }
 })();
 
@@ -119,10 +119,6 @@ document.addEventListener('keydown', async function (event) {
     if (event.altKey && event.key.toLowerCase() === 'm' && focused.minbtn !== undefined) {
         event.preventDefault();
         await wm.minimize(focused.window, focused.tbn);
-    }
-    if (event.altKey && event.key.toLowerCase() === 'l') {
-        event.preventDefault();
-        app.lockscreen.init();
     }
     if (event.altKey && event.key.toLowerCase() === 'r' && focused.window !== undefined) {
         event.preventDefault();
@@ -268,123 +264,6 @@ var wd = {
                 el.sm = undefined;
             }
         }
-        function controlcenter() {
-            if (el.cc == undefined) {
-                if (el.sm) {
-                    ui.dest(el.sm, 140);
-                    el.sm = undefined;
-                } else if (el.am) {
-                    ui.dest(el.am, 40);
-                    el.am = undefined;
-                }
-                el.cc = tk.c('div', document.body, 'menubardiv');
-                const ok = tk.c('div', el.cc, 'embed nest');
-                if (sys.guest === false && sys.echodesk === false) {
-                    const yeah = tk.cb('b3 b2', 'Deep Sleep', function () {
-                        const menu = tk.c('div', document.body, 'cm');
-                        tk.p('Deep Sleep', 'bold', menu);
-                        tk.p(`Your DeskID will work as normal, and WebDesk will use little resources. Save your work before entering.`, undefined, menu);
-                        tk.cb('b1', 'Close', () => ui.dest(menu), menu); tk.cb('b1', 'Enter', async function () {
-                            await fs.write('/system/eepysleepy', 'true');
-                            await wd.reboot();
-                        }, menu);
-                    }, ok);
-                    yeah.style.marginTop = "2px";
-                }
-                tk.cb('b3 b2', 'Clear Notifications', function () {
-                    ui.hide(tk.g('notif'), 200);
-                    setTimeout(function () {
-                        tk.g('notif').innerHTML = "";
-                        ui.show(tk.g('notif'));
-                    }, 200);
-                }, ok);
-                tk.cb('b3 b2', 'Reboot/Reload', function () {
-                    wd.reboot();
-                }, ok);
-                const addicon = tk.cb('conticon', '', function () {
-                    const input = document.createElement('input');
-                    input.type = 'file';
-                    input.style.display = 'none';
-                    input.addEventListener('change', function (event) {
-                        const file = event.target.files[0];
-                        if (file) {
-                            const reader = new FileReader();
-
-                            reader.onload = async function (e) {
-                                const silly = e.target.result;
-                                await fs.write(`/user/files/` + file.name, silly);
-                            };
-
-                            reader.readAsDataURL(file);
-                        }
-                    });
-
-                    input.click();
-                    controlcenter();
-                }, ok);
-                tk.img('/assets/img/icons/plus.svg', 'contimg', addicon, false);
-                ui.tooltip(addicon, 'Add file to WebDesk');
-                const sleepicon = tk.cb('conticon', '', function () {
-                    app.lockscreen.init();
-                    controlcenter();
-                }, ok);
-                ui.tooltip(sleepicon, 'Puts WebDesk to sleep; apps keep running');
-                tk.img('/assets/img/icons/moon.svg', 'contimg', sleepicon, false);
-                const screenicon = tk.cb('conticon', '', function () {
-                    wd.fullscreen();
-                }, ok);
-                ui.tooltip(screenicon, 'Fullscreen toggle');
-                tk.img('/assets/img/icons/fs.svg', 'contimg', screenicon, false);
-                const notificon = tk.cb('conticon', '', async function () {
-                    if (sys.nvol === 0) {
-                        notifimg.src = "/assets/img/icons/notify.svg";
-                        sys.nvol = 1.0;
-                        ui.play(sys.notifsrc);
-                        await fs.del('/user/info/silent');
-                    } else {
-                        notifimg.src = "/assets/img/icons/silent.svg";
-                        sys.nvol = 0.0;
-                        await fs.write('/user/info/silent', 'true');
-                    }
-                    el.contb.classList.toggle('silentbtn');
-                }, ok);
-                const notifimg = tk.img('/assets/img/icons/notify.svg', 'contimg', notificon, false);
-                if (sys.nvol === 0) notifimg.src = "/assets/img/icons/silent.svg";
-                ui.tooltip(notificon, 'Silent toggle');
-            } else {
-                ui.dest(el.cc, 40);
-                el.cc = undefined;
-            }
-        }
-        function appmenu() {
-            if (el.am == undefined) {
-                if (el.sm) {
-                    ui.dest(el.sm, 140);
-                    el.sm = undefined;
-                } else if (el.cc) {
-                    ui.dest(el.cc, 40);
-                    el.cc = undefined;
-                }
-                el.am = tk.c('div', document.body, 'menubardiv menubarb');
-                el.am.style.left = "7px";
-                el.am.style.width = "170px";
-                const min = tk.cb('b2', 'Minimize/Hide', async function () {
-                    await wm.minimize(focused.window, focused.tbn);
-                }, el.am);
-                ui.note('Alt+M', min);
-                const rec = tk.cb('b2', 'Recenter', async function () {
-                    ui.center(focused.window);
-                }, el.am);
-                ui.note('Alt+R', rec);
-                const quit = tk.cb('b2', 'Quit', async function () {
-                    await wm.close(focused.window, focused.tbn);
-                }, el.am);
-                ui.note('Alt+Q', quit);
-            } else {
-                ui.dest(el.am, 40);
-                el.am = undefined;
-            }
-        }
         function desktopgo() {
             el.taskbar = tk.c('div', document.body, 'taskbar');
             function tbresize() {
@@ -467,9 +346,6 @@ var wd = {
         for (let i = 0; i < elements.length; i++) {
             elements[i].innerText = formattedTime;
         }
-    },
-    finishsetup: function (name, div1, div2) {
-        ui.sw2(div1, div2); ui.masschange('name', name); fs.write('/user/info/name', name); fs.write('/system/info/setuptime', Date.now()); fs.write('/system/info/setupver', abt.ver);
     },
     reboot: function () {
         ui.show(tk.g('death'), 140);
@@ -710,59 +586,11 @@ var wd = {
         ui.cv('fz2', '15px');
         ui.cv('fz1', '17px');
     },
-    loadapps: async function (inapp, onlineApps, apps) {
-        const onlineApp = onlineApps.find(app => app.appid === inapp.appid);
-        if (onlineApp === undefined) {
-            if (sys.dev === true) {
-                const fucker = await fs.read(inapp.exec);
-                eval(fucker);
-            } else {
-                wm.notif(inapp.name + ` isn't recognized`, `This app has been blocked for safety. For options, hit "Open".`, function () {
-                    const thing = tk.c('div', document.body, 'cm');
-                    tk.p(`This app isn't on the App Market, so it's been blocked.`, undefined, thing);
-                    tk.p(`If you didn't add this, consider erasing WebDesk, as it could be a virus. If you don't want to, just remove it.`, undefined, thing);
-                    tk.cb('b1 b2', 'Remove ' + inapp.name, async function () {
-                        const data = await fs.read('/system/apps.json');
-                        const parsed = JSON.parse(data);
-                        const updatedApps = parsed.filter(item => item.appid !== inapp.appid);
-                        const updatedData = JSON.stringify(updatedApps);
-                        await fs.write('/system/apps.json', updatedData);
-                        await fs.del(inapp.exec);
-                        await wd.reboot();
-                    }, thing);
-                    tk.cb('b1', 'Close', function () {
-                        ui.dest(thing);
-                    }, thing);
-                });
-            }
-        } else {
-            if (onlineApp.ver === inapp.ver && sys.fucker === false) {
-                console.log(`<i> ${inapp.name} is up to date (${inapp.ver} = ${onlineApp.ver})`);
-                const fucker = await fs.read(inapp.exec);
-                if (fucker) {
-                    eval(fucker);
-                } else {
-                    fs.del('/system/apps.json');
-                    fs.delfold('/system/apps');
-                    wm.notif('App Issues', 'All apps were uninstalled due to corruption or an update. Your data is safe, you can reinstall them anytime.', () => app.appmark.init(), 'App Market');
-                    sys.fucker = true;
-                    return;
-                }
-            } else {
-                const remove = apps.filter(item => item.appid !== inapp.appid);
-                const removed = JSON.stringify(remove);
-                fs.write('/system/apps.json', removed);
-                app.appmark.create(onlineApp.path, onlineApp, true);
-                console.log(`<!> ${inapp.name} was updated (${inapp.ver} --> ${onlineApp.ver})`);
-            }
-        }
-    },
     perfmon: function () {
         if (performance.memory) {
             setInterval(() => {
                 const memoryUsage = performance.memory.usedJSHeapSize / performance.memory.jsHeapSizeLimit;
                 if (memoryUsage > 0.75) {
-                    app.ach.unlock(`Time to make the chimichangas!`, `Quite literally, if your device gets that hot.`);
                     wm.notif(`STOP WHATEVER YOU'RE DOING`, `WebDesk is going to crash due to overuse of resources, or it will start deleting things from memory.`);
                 }
             }, 4000);
@@ -786,125 +614,11 @@ var wd = {
             wd.defaultcolor();
         }
     },
-    savecity: async function (city2) {
-        if (!city2) {
-            const ipinfoResponse = await fetch('https://ipinfo.io/json');
-            const ipinfoData = await ipinfoResponse.json();
-            const city = ipinfoData.city;
-            const region = ipinfoData.region;
-            const country = ipinfoData.country;
-            const unit = (country === 'US') ? 'Imperial' : 'Metric';
-
-            return {
-                location: `${region}, ${country}`,
-                unit: unit,
-            }
-        } else {
-            const unit = (city2.endsWith('US') || city2.endsWith('USA') || city2.endsWith('America')) ? 'Imperial' : 'Metric';
-            return {
-                location: `${city2}`,
-                unit: unit,
-            }
-        }
-    },
     defaultcolor: function () {
         ui.crtheme('#4D79FF');
         wd.light();
     },
-    wetter: function (setdefault) {
-        const main = tk.c('div', document.body, 'cm');
-        tk.img('./assets/img/setup/location.svg', 'setupi', main);
-        const menu = tk.c('div', main);
-        const info = tk.c('div', main, 'hide');
-        tk.p('Allow WebDesk to access your state/region for weather processing?', 'bold', menu);
-        tk.p('Your data is processed by OpenWeatherMap & IPInfo, and is only visible to you. This can be changed in Settings later.', undefined, menu);
-        tk.p('If you deny, your location will be set to Paris, France.', undefined, menu);
-        if (setdefault === false) {
-            tk.cb('b1', 'Cancel', async function () {
-                ui.dest(main);
-            }, menu);
-        } else {
-            tk.cb('b1', 'Deny', async function () {
-                await fs.write('/user/info/location.json', [{ city: 'Paris, France', unit: 'Metric', lastupdate: Date.now(), default: true }]);
-                ui.dest(main);
-            }, menu);
-        }
-        tk.cb('b1', 'More Info', async function () {
-            ui.sw2(menu, info);
-        }, menu);
-        tk.cb('b1', 'Allow', async function () {
-            try {
-                const data = await wd.savecity();
-                await fs.write('/user/info/location.json', [{ city: data.location, unit: data.unit, lastupdate: Date.now(), default: false }]);
-                sys.city = data.location;
-                sys.unit = data.unit;
-                if (sys.unit === "Metric") {
-                    sys.unitsym = "°C";
-                } else {
-                    sys.unitsym = "°F";
-                }
-                sys.defaultloc = false;
-                sys.loclast = Date.now();
-                ui.dest(main);
-            } catch (error) {
-                const skibidi = tk.c('div', main, 'hide');
-                ui.sw2(menu, skibidi);
-                tk.p(`An error occured`, 'bold', skibidi);
-                tk.p(`This is probably due to extensions like uBlock origin. You probably can't bother disabling them, so enter your city manually.`, undefined, skibidi);
-                const inp = tk.c('input', skibidi, 'i1');
-                inp.placeholder = "Location e.g. Paris, France";
-                if (setdefault === false) {
-                    tk.cb('b1', 'Cancel', async function () {
-                        ui.dest(main);
-                    }, menu);
-                } else {
-                    tk.cb('b1', 'Deny', async function () {
-                        await fs.write('/user/info/location.json', [{ city: 'Paris, France', unit: 'Metric', lastupdate: Date.now(), default: true }]);
-                        ui.dest(main);
-                    }, menu);
-                }
-                tk.cb('b1', 'Set City', async function () {
-                    const data = await wd.savecity(inp.value);
-                    await fs.write('/user/info/location.json', [{ city: data.location, unit: data.unit, lastupdate: Date.now(), default: false }]);
-                    sys.city = data.location;
-                    sys.unit = data.unit;
-                    if (sys.unit === "Metric") {
-                        sys.unitsym = "°C";
-                    } else {
-                        sys.unitsym = "°F";
-                    }
-                    sys.defaultloc = false;
-                    sys.loclast = Date.now();
-                    ui.dest(main);
-                }, skibidi);
-            }
-        }, menu);
-        tk.p('How this works', 'bold', info);
-        tk.p(`IPInfo finds your city via your IP address. After this, your city is fed into OpenWeatherMap for weather details.`, undefined, info);
-        tk.p('None of your data is viewable or visible to anyone else but you. ', undefined, info);
-        tk.cb('b1 b2', `OpenWeatherMap's website`, async function () {
-            window.open('https://openweathermap.org', '_blank');
-        }, info);
-        tk.cb('b1 b2', `IPInfo's website`, async function () {
-            window.open('https://ipinfo.io', '_blank');
-        }, info);
-        tk.cb('b1', 'Back', async function () {
-            ui.sw2(info, menu);
-        }, info);
-    },
-    hawktuah: async function (skibidi) {
-        const hawk = await fs.read('/system/info/currentver');
-        if (hawk !== abt.ver || skibidi === true) {
-            await fs.write('/system/info/currentver', abt.ver);
-            const win = tk.mbw('Changelog', '300px', '390px', true);
-            const div = tk.c('div', win.main, 'embed nest');
-            const response = await fetch('./assets/other/changelog.html');
-            const tuah = await response.text();
-            div.style.height = "100%";
-            div.style.maxHeight = "100%";
-            div.innerHTML = tuah;
-        }
-    },
+    
     chokehold: function () {
         return new Promise(resolve => {
             sys.resume = resolve;
@@ -940,41 +654,7 @@ var wd = {
         }`;
         document.head.appendChild(style);
     },
-    tbcal: async function () {
-        let px = 0;
-        const ok = await fs.read('/system/standalonepx');
-        if (ok) {
-            px = ok;
-            el.taskbar.style.bottom = px + "px";
-        }
-        const div = tk.c('div', document.body, 'cm');
-        tk.p('Calibrate app bar', 'bold', div);
-        tk.p('Some devices have UI elements that cut off the app bar.', undefined, div);
-        tk.p('This tool lets you adjust the positioning of the app bar.', undefined, div);
-        tk.p('Tap the Increase or Decrease buttons to move the app bar.', undefined, div);
-        tk.cb('b1 b2', 'Done', async function () {
-            ui.dest(div);
-        }, div);
-        tk.cb('b1', 'Increase', async function () {
-            if (px > 50) return;
-            px += 2;
-            el.taskbar.style.bottom = px + "px";
-            await fs.write('/system/standalonepx', px);
-        }, div);
-        tk.cb('b1', 'Decrease', async function () {
-            if (px < 0) return;
-            px -= 2;
-            el.taskbar.style.bottom = px + "px";
-            await fs.write('/system/standalonepx', px);
-        }, div);
-    }
 }
-
-document.addEventListener('visibilitychange', function () {
-    if (document.hidden) {
-        app.lockscreen.init();
-    }
-});
 
 let wakelocked = false;
 document.addEventListener('mousedown', async function (event) {

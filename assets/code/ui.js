@@ -295,54 +295,6 @@ var ui = {
             return inputText;
         }
     },
-    tooltip: function (element, text) {
-        // Should I tip him, or should I give him my tip?
-        let stillwater = true;
-        let el = undefined;
-        function bye() {
-            el.removeEventListener('mouseover', bye);
-            document.body.removeEventListener('mousemove', bye);
-            el.remove();
-            el = undefined;
-        }
-        if (sys.mob === true) {
-            let isLongPress = false;
-            let timer;
-
-            element.addEventListener('touchstart', e => {
-                e.preventDefault();
-                isLongPress = false;
-                timer = setTimeout(() => {
-                    isLongPress = true;
-                    el = tk.c('div', document.body, 'tooltip');
-                    el.innerText = ui.filter(text);
-                    document.body.addEventListener('mousemove', bye);
-                }, 500);
-            });
-
-            element.addEventListener('touchend', () => {
-                clearTimeout(timer);
-                if (!isLongPress) {
-                    stillwater = false;
-                    clearTimeout(timer);
-                    element.click();
-                }
-            });
-
-            element.addEventListener('touchmove', () => clearTimeout(timer));
-            element.addEventListener('touchcancel', () => clearTimeout(timer));
-        } else {
-            element.addEventListener('contextmenu', function (e) {
-                if (stillwater === true) {
-                    e.preventDefault();
-                    el = tk.c('div', document.body, 'tooltip');
-                    el.innerText = ui.filter(text);
-                    el.addEventListener('mouseover', bye);
-                    document.body.addEventListener('mousemove', bye);
-                }
-            });
-        }
-    },
     rightclick: function (menu, event, btn, menudiv) {
         if (!event || sys.mob === true) {
             ui.center(menu);
